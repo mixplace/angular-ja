@@ -1,10 +1,10 @@
-# ルーティング & ナビゲーション
+# Routing & Navigation
 
-Angular **`Router`**は、ユーザーがアプリケーションタスクを実行するときに、ある[ビュー](guide/glossary#view)から
-次のビューへのナビゲーションを可能にします。
+The Angular **`Router`** enables navigation from one [view](guide/glossary#view) to the next
+as users perform application tasks.
 
-このガイドでは、ルーターの主要機能について、小さなアプリケーションを作っていく過程をサンプルにして説明します。
-<live-example>ブラウザ上でライブで実行することもできます。</live-example>
+This guide covers the router's primary features, illustrating them through the evolution
+of a small application that you can <live-example>run live in the browser</live-example>.
 
 <!-- style for all tables on this page -->
 <style>
@@ -12,33 +12,33 @@ Angular **`Router`**は、ユーザーがアプリケーションタスクを実
 </style>
 
 
-## 概要
+## Overview
 
-ブラウザは、アプリケーションナビゲーションでおなじみの振る舞いです:
+The browser is a familiar model of application navigation:
 
-* アドレスバーにURLを入力すると、ブラウザは対応するページに移動します。
-* ページ上のリンクをクリックすると、ブラウザは新しいページに移動します。
-* ブラウザの戻る・進むのボタンをクリックすると、
-  ブラウザはあなたが見たページの履歴を前後に移動します。
+* Enter a URL in the address bar and the browser navigates to a corresponding page.
+* Click links on the page and the browser navigates to a new page.
+* Click the browser's back and forward buttons and the browser navigates
+  backward and forward through the history of pages you've seen.
 
-Angular `Router` ("the router") は、この振る舞いを参考にしています。
-ブラウザのURLをクライアント生成ビューに移動する命令として解釈できます。
-サポートするビューコンポーネントにオプションのパラメータを渡すことで、表示する特定のコンテンツを決定するのに役立ちます。
-ルーターをページ上のリンクにバインドすることができ、ユーザーがリンクをクリックすると、
-適切なアプリケーションビューにナビゲートします。
-ユーザーがボタンをクリックしたとき、ドロップボックスから選択するとき、
-または任意のソースからの他のアクションに応答して、必然的にナビゲートすることができます。
-また、ルーターはブラウザの履歴ジャーナルにアクティビティを記録するので、戻るボタンと進むボタンも機能します。
+The Angular `Router` ("the router") borrows from this model.
+It can interpret a browser URL as an instruction to navigate to a client-generated view.
+It can pass optional parameters along to the supporting view component that help it decide what specific content to present.
+You can bind the router to links on a page and it will navigate to
+the appropriate application view when the user clicks a link.
+You can navigate imperatively when the user clicks a button, selects from a drop box,
+or in response to some other stimulus from any source. And the router logs activity
+in the browser's history journal so the back and forward buttons work as well.
 
 {@a basics}
 
 
-## 基本
+## The Basics
 
-このガイドは、マイルストーンを付けて段階的に進めていきます。最初はシンプルな2ページのビューから始まり、
-子ルートを備えたモジュール化されたマルチビューの設計へと進んでいきます。
+This guide proceeds in phases, marked by milestones, starting from a simple two-pager
+and building toward a modular, multi-view design with child routes.
 
-ルーターのコア部分の概念をいくつか紹介することで、次のフェーズへ進むことができます。
+An introduction to a few core router concepts will help orient you to the details that follow.
 
 
 {@a basics-base-href}
@@ -46,11 +46,11 @@ Angular `Router` ("the router") は、この振る舞いを参考にしていま
 
 ### *&lt;base href>*
 
-ほとんどのルーティングアプリケーションは`<head>`タグの最初の子要素として、`<base>`要素を`index.html`に追加して、
-ナビゲーションURLの作成方法をルーターに伝えるべきです。
+Most routing applications should add a `<base>` element to the `index.html` as the first child in the  `<head>` tag
+to tell the router how to compose navigation URLs.
 
-`app`フォルダがアプリケーションルートの場合、サンプルアプリケーションの場合と同様、
-次に示すように`href`値を*正確に*設定します。
+If the `app` folder is the application root, as it is for the sample application,
+set the `href` value *exactly* as shown here.
 
 
 <code-example path="router/src/index.html" linenums="false" title="src/index.html (base-href)" region="base-href">
@@ -62,11 +62,11 @@ Angular `Router` ("the router") は、この振る舞いを参考にしていま
 {@a basics-router-imports}
 
 
-### Routerをインポートする
+### Router imports
 
-Angular Routerは、指定されたURLの特定のコンポーネントビューを表示するオプションのサービスです。 Angularコアの一部ではありません。
-これは、`@angular/router`という独自のライブラリパッケージに入っています。
-他のAngularパッケージと同様、必要なものをインポートします。
+The Angular Router is an optional service that presents a particular component view for a given URL.
+It is not part of the Angular core. It is in its own library package, `@angular/router`.
+Import what you need from it as you would from any other Angular package.
 
 
 <code-example path="router/src/app/app.module.1.ts" linenums="false" title="src/app/app.module.ts (import)" region="import-router">
@@ -79,7 +79,7 @@ Angular Routerは、指定されたURLの特定のコンポーネントビュー
 
 
 
-詳細については、[以下でさらに詳しく](#browser-url-styles)説明します。
+You'll learn about more options in the [details below](#browser-url-styles).
 
 
 </div>
@@ -89,15 +89,15 @@ Angular Routerは、指定されたURLの特定のコンポーネントビュー
 {@a basics-config}
 
 
-### 設定
+### Configuration
 
-ルーティングされたAngularアプリケーションには、*`Router`*サービスの1つのシングルトンインスタンスがあります。
-ブラウザのURLが変更されると、そのルーターは対応する`Route`を探し、
-表示するコンポーネントを決定します。
+A routed Angular application has one singleton instance of the *`Router`* service.
+When the browser's URL changes, that router looks for a corresponding `Route`
+from which it can determine the component to display.
 
-ルーターには、設定するまでルートがありません。
-次の例では、4つのルート定義を作成し、
-`RouterModule.forRoot` メソッドでルーターを設定し、その結果を`AppModule`の `imports`配列に追加します。
+A router has no routes until you configure it.
+The following example creates four route definitions, configures the router via the `RouterModule.forRoot` method,
+and adds the result to the `AppModule`'s `imports` array.
 
 
 <code-example path="router/src/app/app.module.0.ts" linenums="false" title="src/app/app.module.ts (excerpt)">
@@ -109,38 +109,39 @@ Angular Routerは、指定されたURLの特定のコンポーネントビュー
 {@a example-config}
 
 
-`appRoutes`の*routes*配列は、ナビゲートする方法を説明しています。
-ルーターを設定するには、モジュールの`imports`に`RouterModule.forRoot`メソッドを渡します。
+The `appRoutes` array of *routes* describes how to navigate.
+Pass it to the `RouterModule.forRoot` method in the module `imports` to configure the router.
 
-それぞれの`Route`が、URLパスをコンポーネントにマッピングします。
-_パス_の先頭にスラッシュは入れません。
-ルーターは最終的なURLを解析してビルドし、アプリケーションビュー間を移動するときに相対パスと絶対パスの両方を使用できます。
+Each `Route` maps a URL `path` to a component.
+There are _no leading slashes_ in the _path_.
+The router parses and builds the final URL for you,
+allowing you to use both relative and absolute paths when navigating between application views.
 
-2つ目のrouteの`:id`は、ルートパラメータのトークンです。
-たとえば`/hero/42`というURLでは、"42"は`id`パラメータの値です。
-対応する`HeroDetailComponent`はその値を使用して、`id`が42のヒーローを見つけて提示します。
-このガイドの後半で、Routeパラメータの詳細を学習します。
+The `:id` in the second route is a token for a route parameter. In a URL such as `/hero/42`, "42"
+is the value of the `id` parameter. The corresponding `HeroDetailComponent`
+will use that value to find and present the hero whose `id` is 42.
+You'll learn more about route parameters later in this guide.
 
-3つ目のrouteにある`data`プロパティは、この特定のルートに関連付けられた任意のデータを格納する場所です。
-dataプロパティは、アクティブ化された各ルート内でアクセスできます。
-ページタイトル、パンくず用のテキスト、その他の読み取り専用の_静的_データなどのアイテムを格納するために使用します。
-ガイドの後半で[解決ガード](#resolve-guard)を使用することで_動的_データを取得できます。
+The `data` property in the third route is a place to store arbitrary data associated with
+this specific route. The data property is accessible within each activated route. Use it to store
+items such as page titles, breadcrumb text, and other read-only, _static_ data.
+You'll use the [resolve guard](#resolve-guard) to retrieve _dynamic_ data later in the guide.
 
-4番目のrouteにある空のパスは、アプリケーションのデフォルトパスを表します。
-これは、URLのパスが空のときに移動する場所です（通常は開始時です）。
-このデフォルトルートは`/heroes `URLのルートにリダイレクトされるため、`HeroesListComponent`が表示されます。
+The **empty path** in the fourth route represents the default path for the application,
+the place to go when the path in the URL is empty, as it typically is at the start.
+This default route redirects to the route for the `/heroes` URL and, therefore, will display the `HeroesListComponent`.
 
-appRoutes配列の最後にある`**`パスはワイルドカードです。
-要求されたURLが設定で以前に定義されたルートのパスと一致しない場合、ルーターはこのルートを選択します。
-これは "404 - Not Found" ページを表示したり、別のルートにリダイレクトしたりするのに便利です。
+The `**` path in the last route is a **wildcard**. The router will select this route
+if the requested URL doesn't match any paths for routes defined earlier in the configuration.
+This is useful for displaying a "404 - Not Found" page or redirecting to another route.
 
-**構成内のroutesを記述する順序は重要です。** これは設計によるものです。
-ルーターはrouteを照合する際に **最初にマッチしたものを採用する** 戦略を使用しているため、
-より特定のルートよりも特定のルートを優先する必要があります。
-上記の設定では、静的パスを含むルートが最初にリストされ、その後にデフォルトルートと一致する空のパスルートが表示されます。
-ワイルドカードルートは_すべてのURL_と一致し、最初に他のルートが一致しない場合に_のみ_選択する必要があるため、配列の最後に配置しています。
+**The order of the routes in the configuration matters** and this is by design. The router uses a **first-match wins**
+strategy when matching routes, so more specific routes should be placed above less specific routes.
+In the configuration above, routes with a static path are listed first, followed by an empty path route,
+that matches the default route.
+The wildcard route comes last because it matches _every URL_ and should be selected _only_ if no other routes are matched first.
 
-ナビゲーションライフサイクル中にどのようなイベントが発生しているかを確認する必要がある場合は、ルーターのデフォルト設定の一部として**enableTracing**オプションがあります。これにより、各ナビゲーションライフサイクル中に発生した各ルーターイベントがブラウザコンソールに出力されます。これは、_デバッグ_の目的でのみ使用してください。`RouterModule.forRoot()`メソッドの2番目の引数として渡されたオブジェクトで、`enableTracing:true`オプションを設定します。
+If you need to see what events are happening during the navigation lifecycle, there is the **enableTracing** option as part of the router's default configuration. This outputs each router event that took place during each navigation lifecycle to the browser console. This should only be used for _debugging_ purposes. You set the `enableTracing: true` option in the object passed as the second argument to the `RouterModule.forRoot()` method.
 
 {@a basics-router-outlet}
 
